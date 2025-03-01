@@ -19,9 +19,7 @@ public class PdfToExcelUI {
         });
     }
 
-    /**
-     * Sets the application's look and feel to the native system look and feel.
-     */
+
     private static void setNativeLookAndFeel() {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
