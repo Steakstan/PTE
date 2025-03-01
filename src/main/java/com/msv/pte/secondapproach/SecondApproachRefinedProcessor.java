@@ -1,6 +1,6 @@
-package com.example.pte.secondapproach;
+package com.msv.pte.secondapproach;
 
-import com.example.pte.database.DeviceModels;
+import com.msv.pte.database.DeviceModels;
 import java.util.ArrayList;
 import java.util.List;
 

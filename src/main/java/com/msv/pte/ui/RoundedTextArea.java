@@ -1,4 +1,4 @@
-package com.example.pte.ui;
+package com.msv.pte.ui;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

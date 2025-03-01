@@ -1,4 +1,4 @@
-package com.example.pte.parser;
+package com.msv.pte.parser;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;

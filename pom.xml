@@ -14,16 +14,12 @@
     <name>PDFToExcelConverter</name>
     <description>Beispielprojekt, das PDF-Daten extrahiert und in Excel schreibt</description>
 
-    <!-- Hier kannst du die Eigenschaften für dein Projekt festlegen -->
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <!-- Falls du Java 8 benutzen willst -->
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <!-- oder falls du Java 11 o.ä. nutzen möchtest:
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        -->
+
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+
     </properties>
 
 
@@ -51,21 +47,17 @@
 
     <build>
         <plugins>
-            <!-- Maven Compiler Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <!-- Falls du die oben gesetzten Properties nicht verwenden willst,
-                         kannst du hier manuell source/target definieren. -->
                     <source>21</source>
                     <target>21</target>
                     <compilerArgs>--enable-preview</compilerArgs>
                 </configuration>
             </plugin>
 
-            <!-- Falls du ein ausführbares JAR bauen möchtest (mit Main-Class-Angabe) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -76,7 +68,7 @@
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                             <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
                             <!-- Deine Main-Klasse mit main()-Methode angeben: -->
-                            <mainClass>Converter.PDFToExcel</mainClass>
+                            <mainClass>pte.PdfToExcelUI</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

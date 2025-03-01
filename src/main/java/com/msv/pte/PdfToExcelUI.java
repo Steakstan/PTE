@@ -1,6 +1,6 @@
-package com.example.pte;
+package com.msv.pte;
 
-import com.example.pte.ui.PdfToExcelFrame;
+import com.msv.pte.ui.PdfToExcelFrame;
 
 import javax.swing.UIManager;
 import javax.swing.SwingUtilities;

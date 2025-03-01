@@ -1,4 +1,4 @@
-package com.example.pte.core;
+package com.msv.pte.core;
 
 /**
  * Controller for handling PDF to Excel processing business logic.

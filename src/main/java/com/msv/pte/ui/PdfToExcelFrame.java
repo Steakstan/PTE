@@ -1,6 +1,6 @@
-package com.example.pte.ui;
+package com.msv.pte.ui;
 
-import com.example.pte.core.PdfToExcelController;
+import com.msv.pte.core.PdfToExcelController;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

@@ -1,6 +1,6 @@
-package com.example.pte.parser;
+package com.msv.pte.parser;
 
-import com.example.pte.database.BranchNumbers;
+import com.msv.pte.database.BranchNumbers;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

@@ -1,4 +1,4 @@
-package com.example.pte.parser;
+package com.msv.pte.parser;
 
 /**
  * Represents a model entry with its name and a flag indicating whether the model

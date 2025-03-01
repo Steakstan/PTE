@@ -1,6 +1,6 @@
-package com.example.pte.parser;
+package com.msv.pte.parser;
 
-import com.example.pte.database.DeviceModels;
+import com.msv.pte.database.DeviceModels;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
