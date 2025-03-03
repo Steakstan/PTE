@@ -68,7 +68,8 @@ Run the application:
 
 
 java -jar target/pdf-to-excel-processor.jar
-Contribution
+
+
 Contributions are welcome! Please feel free to submit issues and pull requests for improvements and additional features.
 
 This program demonstrates a robust approach to integrating document processing and UI development in Java, showcasing skills in both backend and frontend development, with a particular focus on handling order confirmations from BSHG. Enjoy using the PDF to Excel Processor!
