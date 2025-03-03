@@ -52,23 +52,21 @@ Apache PDFBox and Apache POI libraries
 Running the Application
 Clone the repository:
 
-bash
-Copy
+
 git clone https://github.com/Steakstan/PTE.git
+
 Build the project using your preferred build tool:
 
-bash
-Copy
+
 mvn clean install
+
 or
 
-bash
-Copy
 gradle build
+
 Run the application:
 
-bash
-Copy
+
 java -jar target/pdf-to-excel-processor.jar
 Contribution
 Contributions are welcome! Please feel free to submit issues and pull requests for improvements and additional features.
