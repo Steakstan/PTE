@@ -9,7 +9,8 @@ import javax.swing.SwingUtilities;
  * Entry point for the PDF to Excel Processor application.
  * Sets the native look and feel and initializes the main UI frame.
  */
-public class PdfToExcelUI {
+public class
+PdfToExcelUI {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {

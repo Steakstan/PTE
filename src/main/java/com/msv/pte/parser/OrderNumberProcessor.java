@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 public class OrderNumberProcessor {
 
     // Pattern to match "Bestellung" or "Bestelltext" followed by a 5-6 character order number.
-    private static final Pattern ORDER_PATTERN = Pattern.compile("(?i)(Bestellung|Bestelltext)\\s+(\\S{5,6})");
+    private static final Pattern ORDER_PATTERN = Pattern.compile("(?i)(Bestellung|Bestelltext)\\s+(\\S{5,9})");
 
     /**
      * Finds the order number in the provided PDF text.
@@ -22,16 +22,25 @@ public class OrderNumberProcessor {
      */
     public static String findOrderNumber(String pdfText) {
         Matcher matcher = ORDER_PATTERN.matcher(pdfText);
+        String fallbackCandidate = null;
+
         while (matcher.find()) {
             String candidate = matcher.group(2);
-            if (candidate != null && candidate.length() >= 2) {
-                String branchCode = candidate.substring(0, 2).toUpperCase();
-                if (isValidBranch(branchCode)) {
-                    return candidate;
-                }
+            if (candidate == null || candidate.length() < 2) {
+                continue;
+            }
+
+            if (fallbackCandidate == null) {
+                fallbackCandidate = candidate;
+            }
+
+            String branchCode = candidate.substring(0, 2).toUpperCase();
+            if (isValidBranch(branchCode)) {
+                return candidate;
             }
         }
-        return null;
+
+        return fallbackCandidate;
     }
 
     /**

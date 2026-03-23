@@ -26,7 +26,7 @@ public class PdfToExcelFrame extends JFrame {
     private final JButton processButton = createRoundedButton("Verarbeiten");
 
     public PdfToExcelFrame() {
-        super("PDF to Excel Processor");
+        super("PDF to Excel");
         initializeFrame();
         initializeComponents();
     }

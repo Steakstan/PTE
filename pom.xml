@@ -24,24 +24,24 @@
 
 
     <dependencies>
-            <!-- Apache PDFBox zum Auslesen von PDF-Dateien -->
-            <dependency>
-                <groupId>org.apache.pdfbox</groupId>
-                <artifactId>pdfbox</artifactId>
-                <version>2.0.29</version>
-            </dependency>
+        <!-- Apache PDFBox zum Auslesen von PDF-Dateien -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>2.0.29</version>
+        </dependency>
 
-            <!-- Apache POI zum Schreiben der Excel-Datei -->
-            <dependency>
-                <groupId>org.apache.poi</groupId>
-                <artifactId>poi</artifactId>
-                <version>5.4.0</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.poi</groupId>
-                <artifactId>poi-ooxml</artifactId>
-                <version>5.4.0</version>
-            </dependency>
+        <!-- Apache POI zum Schreiben der Excel-Datei -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>5.4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.4.0</version>
+        </dependency>
 
     </dependencies>
 
