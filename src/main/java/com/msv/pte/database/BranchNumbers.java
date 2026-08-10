@@ -45,7 +45,6 @@ public class BranchNumbers
             "B1",
             "B2",
             "B4",
-            "BD",
             "BG",
             "BJ",
             "BL",

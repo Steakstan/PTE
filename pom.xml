@@ -17,8 +17,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.source>23</maven.compiler.source>
+        <maven.compiler.target>23</maven.compiler.target>
 
     </properties>
 
@@ -28,7 +28,7 @@
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
-            <version>2.0.29</version>
+            <version>2.0.35</version>
         </dependency>
 
         <!-- Apache POI zum Schreiben der Excel-Datei -->
@@ -43,6 +43,11 @@
             <version>5.4.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.formdev</groupId>
+            <artifactId>flatlaf</artifactId>
+            <version>3.7</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -68,7 +73,7 @@
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                             <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
                             <!-- Deine Main-Klasse mit main()-Methode angeben: -->
-                            <mainClass>pte.PdfToExcelUI</mainClass>
+                            <mainClass>com.msv.pte.PdfToExcelUI</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

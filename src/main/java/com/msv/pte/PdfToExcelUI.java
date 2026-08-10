@@ -1,6 +1,7 @@
 package com.msv.pte;
 
-import com.msv.pte.ui.PdfToExcelFrame;
+import com.formdev.flatlaf.themes.FlatMacDarkLaf;
+import com.msv.pte.ui.PdfToExcelFrameFlatLaf;
 
 import javax.swing.UIManager;
 import javax.swing.SwingUtilities;
@@ -12,10 +13,15 @@ import javax.swing.SwingUtilities;
 public class
 PdfToExcelUI {
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            setNativeLookAndFeel();
-            PdfToExcelFrame mainFrame = new PdfToExcelFrame();
+
+            FlatMacDarkLaf.setup();
+
+            PdfToExcelFrameFlatLaf mainFrame = new PdfToExcelFrameFlatLaf();
+
+            mainFrame.setLocationRelativeTo(null);
+
             mainFrame.setVisible(true);
         });
     }
@@ -23,7 +29,7 @@ PdfToExcelUI {
 
     private static void setNativeLookAndFeel() {
         try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            UIManager.setLookAndFeel(new FlatMacDarkLaf());
         } catch (Exception ex) {
             ex.printStackTrace();
         }

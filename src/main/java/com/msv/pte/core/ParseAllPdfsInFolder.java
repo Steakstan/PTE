@@ -58,8 +58,8 @@ public class ParseAllPdfsInFolder {
         }
 
         List<File> pdfFiles = new ArrayList<>();
-        try {
-            pdfFiles = Files.walk(Paths.get(pdfFolderPath))
+        try (var paths = Files.walk(Paths.get(pdfFolderPath))) {
+            pdfFiles = paths
                     .filter(Files::isRegularFile)
                     .filter(path -> path.toString().toLowerCase().endsWith(".pdf"))
                     .map(Path::toFile)
@@ -228,6 +228,7 @@ public class ParseAllPdfsInFolder {
                 return stripper.getText(document);
             } catch (IOException e) {
                 e.printStackTrace();
+                System.out.println("Error by reading PDF-Files");
                 return null;
             }
         }
