@@ -3,6 +3,26 @@ package com.msv.pte.database;
 public class DeviceModels {
     private static final String[] deviceModels = {
             "3MIOSH60I",
+            "HBD236ABM6",
+            "PIF61ABB5E",
+            "D67XDP2S5",
+            "PQ31I6BMAT",
+            "DWB97DN60",
+            "HBDMATTBK8",
+            "HBDMATTK05",
+            "HBDMATTBK5",
+            "HBA4720M3",
+            "SGZ6BH00",
+            "Z4B0000416",
+            "Z51BIR1X1",
+            "EC6A5HI90",
+            "ER7A6RH40",
+            "EQ31I6BMAT",
+            "SR63HX77KE",
+            "EX87BNGA6",
+            "HZ636000",
+
+
             "3MIOSH60IP",
             "3MIOSH60IT",
             "3MIOSH80I",
