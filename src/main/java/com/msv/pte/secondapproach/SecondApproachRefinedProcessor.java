@@ -1,166 +1,234 @@
 package com.msv.pte.secondapproach;
 
-import com.msv.pte.database.DeviceModels;
+import com.msv.pte.parser.ConfirmationNumberProcessor;
+import com.msv.pte.parser.ConfirmationNumberProcessor.ConfirmationNumberResult;
+import com.msv.pte.parser.DesiredDateProcessor;
+import com.msv.pte.parser.DesiredDateProcessor.DateResult;
+import com.msv.pte.parser.ModelCatalog;
+import com.msv.pte.parser.ModelCatalog.ModelResult;
+import com.msv.pte.parser.OrderNumberProcessor;
+import com.msv.pte.parser.OrderNumberProcessor.OrderNumberResult;
+import com.msv.pte.parser.PdfDocumentReader.DocumentData;
+import com.msv.pte.parser.SecondApproachRefinedParser;
+import com.msv.pte.parser.SecondApproachRefinedParser.SecondApproachResultRow;
+import com.msv.pte.parser.SecondApproachRefinedParser.SourceLine;
+
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Refined processor for the second approach.
- * Merges tokens (e.g. "KW" with a following date or "auslauf" with "*")
- * and extracts AB, contract, model names, and date from the PDF text.
- */
-public class SecondApproachRefinedProcessor {
+/** Adapts the update parser's results for Excel and the existing core. */
+public final class SecondApproachRefinedProcessor {
 
-    private static final String AB_REGEX = "(144|145)\\d{6,8}";
-    private static final String DATE_REGEX = "\\d{1,2}\\.\\d{4}";
-    private static final String[] SPECIAL_TOKENS = {
-            "auslauf", "auslauf*", "*auslauf", "²", "Neuanlauf"
-    };
+    private SecondApproachRefinedProcessor() {
+    }
 
-    public static class ResultRow {
+    public record ProcessingResult(
+            List<ResultRow> rows,
+            List<String> problems
+    ) {
+        public ProcessingResult {
+            rows = List.copyOf(rows);
+            problems = List.copyOf(problems);
+        }
+
+        public boolean requiresReview() {
+            return !problems.isEmpty()
+                    || rows.stream().anyMatch(ResultRow::requiresReview);
+        }
+    }
+
+    /**
+     * The four public fields preserve the existing API.
+     * For parsed rows they contain export values; getters retain source details.
+     */
+    public static final class ResultRow {
+
         public String vertragsNummer;
         public String modellBezeichnung;
         public String abNummer;
         public String datum;
+
+        private final SecondApproachResultRow parsed;
+        private final List<String> documentProblems;
+
+        /** Preserves the former public no-argument constructor. */
+        public ResultRow() {
+            parsed = null;
+            documentProblems = List.of();
+        }
+
+        private ResultRow(
+                SecondApproachResultRow parsed,
+                List<String> documentProblems
+        ) {
+            this.parsed = parsed;
+            this.documentProblems = documentProblems;
+
+            vertragsNummer = parsed.getOrderResult().orderNumber();
+            modellBezeichnung = parsed.getModelResult().modelName();
+            abNummer = parsed.getConfirmationResult().confirmationNumber();
+            datum = parsed.getExpectedDateResult().excelValue();
+        }
+
+        public OrderNumberResult getOrderResult() {
+            return parsed == null
+                    ? OrderNumberProcessor.parseValue(vertragsNummer)
+                    : parsed.getOrderResult();
+        }
+
+        public ConfirmationNumberResult getConfirmationResult() {
+            return parsed == null
+                    ? ConfirmationNumberProcessor.parseValue(abNummer)
+                    : parsed.getConfirmationResult();
+        }
+
+        public ModelResult getModelResult() {
+            return parsed == null
+                    ? ModelCatalog.getDefault().parseValue(modellBezeichnung)
+                    : parsed.getModelResult();
+        }
+
+        public DateResult getDesiredDateResult() {
+            return parsed == null
+                    ? DesiredDateProcessor.parseValue(null)
+                    : parsed.getDesiredDateResult();
+        }
+
+        public DateResult getExpectedDateResult() {
+            return parsed == null
+                    ? DesiredDateProcessor.parseValue(datum)
+                    : parsed.getExpectedDateResult();
+        }
+
+        public List<DateResult> getDateCandidates() {
+            return parsed == null
+                    ? List.of(getExpectedDateResult())
+                    : parsed.getDateCandidates();
+        }
+
+        public String getPositionNumber() {
+            return parsed == null ? null : parsed.getPositionNumber();
+        }
+
+        public String getEan() {
+            return parsed == null ? null : parsed.getEan();
+        }
+
+        /** Zero means that the row was constructed without a PDF source. */
+        public int getPageNumber() {
+            return parsed == null ? 0 : parsed.getPageNumber();
+        }
+
+        public int getLineNumber() {
+            return parsed == null ? 0 : parsed.getLineNumber();
+        }
+
+        public List<SourceLine> getSourceLines() {
+            return parsed == null ? List.of() : parsed.getSourceLines();
+        }
+
+        /** Document warnings remain accessible through the legacy list API. */
+        public List<String> getDocumentProblems() {
+            return documentProblems;
+        }
+
+        public List<String> getProblems() {
+            if (parsed != null) {
+                return parsed.getProblems();
+            }
+
+            List<String> problems = new ArrayList<>();
+            problems.addAll(getOrderResult().problems());
+            problems.addAll(getConfirmationResult().problems());
+            problems.addAll(getModelResult().problems());
+
+            DateResult date = getExpectedDateResult();
+
+            if (date.requiresReview()) {
+                problems.add(date.problem());
+            }
+
+            return problems.stream().distinct().toList();
+        }
+
+        public boolean isOrderRed() {
+            return getOrderResult().requiresReview();
+        }
+
+        public boolean isConfirmationRed() {
+            return getConfirmationResult().requiresReview();
+        }
+
+        public boolean isModelRed() {
+            return parsed == null
+                    ? getModelResult().requiresReview()
+                    : parsed.isModelRed();
+        }
+
+        public boolean isDateRed() {
+            return parsed == null
+                    ? getExpectedDateResult().requiresReview()
+                    : parsed.isDateRed();
+        }
+
+        public boolean requiresReview() {
+            return !documentProblems.isEmpty()
+                    || !getProblems().isEmpty()
+                    || isOrderRed()
+                    || isConfirmationRed()
+                    || isModelRed()
+                    || isDateRed();
+        }
     }
 
-    /**
-     * Parses the PDF text line by line and returns a list of result rows.
-     *
-     * @param pdfText Full text extracted from a PDF.
-     * @return List of parsed result rows.
-     */
+    /** Preferred entry point: reuses a PDF snapshot, including its coordinates. */
+    public static ProcessingResult processDocument(DocumentData document) {
+        return processDocument(document, ModelCatalog.getDefault());
+    }
+
+    public static ProcessingResult processDocument(
+            DocumentData document,
+            ModelCatalog catalog
+    ) {
+        return convert(
+                SecondApproachRefinedParser.parseDocument(document, catalog)
+        );
+    }
+
+    /** Text-only entry point that also returns document-level warnings. */
+    public static ProcessingResult processText(String pdfText) {
+        return processText(pdfText, ModelCatalog.getDefault());
+    }
+
+    public static ProcessingResult processText(
+            String pdfText,
+            ModelCatalog catalog
+    ) {
+        return convert(
+                SecondApproachRefinedParser.parseText(pdfText, catalog)
+        );
+    }
+
+    /** Compatibility entry point used by the existing ParseAllPdfsInFolder. */
     public static List<ResultRow> parseText(String pdfText) {
-        List<ResultRow> resultRows = new ArrayList<>();
-        String currentAB = null;
-        String currentContract = null;
-        List<String> modelsBuffer = new ArrayList<>();
-
-        String[] lines = pdfText.split("\\r?\\n");
-        for (String line : lines) {
-            line = line.trim();
-            if (line.isEmpty()) continue;
-            List<String> tokens = mergeTokens(line);
-            String finalDate = null;
-            int i = 0;
-            while (i < tokens.size()) {
-                String token = tokens.get(i);
-                if (token.matches(AB_REGEX)) {
-                    flushBuffer(resultRows, modelsBuffer, currentContract, currentAB, null);
-                    modelsBuffer.clear();
-                    currentAB = token;
-                    if (i + 1 < tokens.size()) {
-                        String potentialContract = tokens.get(i + 1);
-                        if (isValidContract(potentialContract)) {
-                            currentContract = potentialContract;
-                            i += 2;
-                            continue;
-                        } else {
-                            currentContract = null;
-                        }
-                    } else {
-                        currentContract = null;
-                    }
-                } else if (isDateOrSpecial(token)) {
-                    finalDate = token;
-                } else if (isKnownModel(token)) {
-                    modelsBuffer.add(token);
-                }
-                i++;
-            }
-            if (finalDate != null) {
-                flushBuffer(resultRows, modelsBuffer, currentContract, currentAB, finalDate);
-                modelsBuffer.clear();
-            }
-        }
-        flushBuffer(resultRows, modelsBuffer, currentContract, currentAB, null);
-        return resultRows;
+        return processText(pdfText).rows();
     }
 
-    // Merges adjacent tokens where applicable.
-    private static List<String> mergeTokens(String line) {
-        String[] rawTokens = line.split("\\s+");
-        List<String> merged = new ArrayList<>();
-        int i = 0;
-        while (i < rawTokens.length) {
-            String token = rawTokens[i];
-            if (token.equalsIgnoreCase("KW") && i + 1 < rawTokens.length && rawTokens[i + 1].matches(DATE_REGEX)) {
-                merged.add("KW " + rawTokens[i + 1]);
-                i += 2;
-                continue;
-            }
-            if (token.equalsIgnoreCase("auslauf") && i + 1 < rawTokens.length && "*".equals(rawTokens[i + 1])) {
-                merged.add("Auslauf*");
-                i += 2;
-                continue;
-            }
-            merged.add(token);
-            i++;
-        }
-        return merged;
-    }
-
-    private static boolean isDateOrSpecial(String token) {
-        if (token.matches(DATE_REGEX) || token.matches("(?i)KW\\s+" + DATE_REGEX)) {
-            return true;
-        }
-        String lower = token.toLowerCase();
-        for (String special : SPECIAL_TOKENS) {
-            if (lower.equals(special.toLowerCase())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static void flushBuffer(List<ResultRow> resultRows, List<String> buffer,
-                                    String contract, String ab, String date) {
-        for (String model : buffer) {
-            ResultRow row = new ResultRow();
-            row.vertragsNummer = contract;
-            row.modellBezeichnung = model;
-            row.abNummer = ab;
-            row.datum = date;
-            resultRows.add(row);
-        }
-    }
-
-    // Placeholder for future contract validation logic.
-    private static boolean isValidContract(String token) {
-        return true;
-    }
-
-    private static boolean isKnownModel(String token) {
-        for (String known : DeviceModels.getDeviceModels()) {
-            if (token.equalsIgnoreCase(known)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Transforms a date string (e.g. "KW 05.2024" or "05.2024") into "0524" format.
-     *
-     * @param dateValue The input date string.
-     * @return The transformed date string.
-     */
+    /** Valid dates become WWYY; null, statuses and invalid text are preserved. */
     public static String transformDateToFourDigits(String dateValue) {
-        String trimmed = dateValue.trim();
-        if (trimmed.toLowerCase().startsWith("kw ")) {
-            trimmed = trimmed.substring(3).trim();
+        return DesiredDateProcessor.transformDate(dateValue);
+    }
+
+    private static ProcessingResult convert(
+            SecondApproachRefinedParser.ParseResult parsed
+    ) {
+        List<String> problems = List.copyOf(parsed.problems());
+        List<ResultRow> rows = new ArrayList<>(parsed.rows().size());
+
+        for (SecondApproachResultRow row : parsed.rows()) {
+            rows.add(new ResultRow(row, problems));
         }
-        if (trimmed.matches("\\d{1,2}\\.\\d{4}")) {
-            String[] parts = trimmed.split("\\.");
-            if (parts.length == 2) {
-                String week = parts[0];
-                String year = parts[1];
-                if (week.length() == 1) {
-                    week = "0" + week;
-                }
-                return week + year.substring(year.length() - 2);
-            }
-        }
-        return dateValue;
+
+        return new ProcessingResult(rows, problems);
     }
 }

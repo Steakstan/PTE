@@ -13,7 +13,7 @@ import javax.swing.SwingUtilities;
 public class
 PdfToExcelUI {
 
-    static void main(String[] args) {
+    public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
 
             FlatMacDarkLaf.setup();

@@ -5,23 +5,19 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- Gruppen-ID, Artifact-ID und Versionsnummer bitte anpassen -->
-    <groupId>com.example</groupId>
+    <groupId>com.msv</groupId>
     <artifactId>pdf-to-excel-converter</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <name>PDFToExcelConverter</name>
-    <description>Beispielprojekt, das PDF-Daten extrahiert und in Excel schreibt</description>
+    <description>Extrahiert PDF-Daten (BSHG) und schreibt sie in Excel</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-        <maven.compiler.source>23</maven.compiler.source>
-        <maven.compiler.target>23</maven.compiler.target>
-
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
     </properties>
-
 
     <dependencies>
         <!-- Apache PDFBox zum Auslesen von PDF-Dateien -->
@@ -43,10 +39,19 @@
             <version>5.4.0</version>
         </dependency>
 
+        <!-- FlatLaf für das moderne Swing-Design -->
         <dependency>
             <groupId>com.formdev</groupId>
             <artifactId>flatlaf</artifactId>
             <version>3.7</version>
+        </dependency>
+
+        <!-- JUnit 5 für die Unit-Tests -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.10.2</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -55,7 +60,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.13.0</version>
                 <configuration>
                     <source>21</source>
                     <target>21</target>
@@ -66,16 +71,62 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.2.2</version>
+                <version>3.4.1</version>
                 <configuration>
                     <archive>
                         <manifest>
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                             <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-                            <!-- Deine Main-Klasse mit main()-Methode angeben: -->
                             <mainClass>com.msv.pte.PdfToExcelUI</mainClass>
                         </manifest>
                     </archive>
+                </configuration>
+            </plugin>
+
+            <!-- Baut ein ausführbares Fat-Jar inkl. aller Abhängigkeiten -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.2</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <manifestEntries>
+                                        <Main-Class>com.msv.pte.PdfToExcelUI</Main-Class>
+                                    </manifestEntries>
+                                </transformer>
+                            </transformers>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                        <exclude>module-info.class</exclude>
+                                        <exclude>META-INF/versions/*/module-info.class</exclude>
+                                        <exclude>META-INF/LICENSE*</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <!-- Tests müssen mit demselben Preview-Flag laufen wie die Kompilierung -->
+                    <argLine>--enable-preview</argLine>
                 </configuration>
             </plugin>
         </plugins>

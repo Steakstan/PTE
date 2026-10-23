@@ -49,6 +49,7 @@ public class BranchNumbers
             "BJ",
             "BL",
             "BO",
+            "BD",
             "BR",
             "BS",
             "BV",
