@@ -18,6 +18,7 @@ public class BranchNumbers
             "17",
             "18",
             "19",
+            "1R",
             "26",
             "0I",
             "0Q",

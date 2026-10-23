@@ -27,6 +27,8 @@
             <version>2.0.35</version>
         </dependency>
 
+
+
         <!-- Apache POI zum Schreiben der Excel-Datei -->
         <dependency>
             <groupId>org.apache.poi</groupId>
@@ -37,6 +39,27 @@
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
             <version>5.4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.ews-java-api</groupId>
+            <artifactId>ews-java-api</artifactId>
+            <version>2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.14</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+            <version>4.4.16</version>
+        </dependency>
+        <!-- EWS references javax.xml.ws / javax.xml.bind, removed from JDK 11+. -->
+        <dependency>
+            <groupId>javax.xml.ws</groupId>
+            <artifactId>jaxws-api</artifactId>
+            <version>2.3.1</version>
         </dependency>
 
         <!-- FlatLaf für das moderne Swing-Design -->

@@ -2,6 +2,8 @@ package com.msv.pte.ui;
 
 import com.msv.pte.core.ParseAllPdfsInFolder.BatchResult;
 import com.msv.pte.core.PdfToExcelController;
+import com.msv.pte.config.UserSettingsStore;
+import com.msv.pte.download.AttachmentDownloadService;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -31,6 +33,10 @@ public class PdfToExcelFrameFlatLaf extends JFrame {
     private static final int MAX_LOG_CHARS = 1_000_000;
 
     private final PdfToExcelController controller;
+    private final UserSettingsStore settings;
+    private final AttachmentDownloadService downloadService;
+    private DownloadPanel downloadPanel;
+    private JTabbedPane tabs;
     private final JTextField pdfDirectoryField = new JTextField();
     private final JTextField excelFileField = new JTextField();
     private final JComboBox<String> fallbackType = new JComboBox<>(
@@ -55,16 +61,23 @@ public class PdfToExcelFrameFlatLaf extends JFrame {
     }
 
     PdfToExcelFrameFlatLaf(PdfToExcelController controller) {
+        this(controller, UserSettingsStore.getDefault(), new AttachmentDownloadService());
+    }
+
+    PdfToExcelFrameFlatLaf(PdfToExcelController controller, UserSettingsStore settings,
+                          AttachmentDownloadService downloadService) {
         super("PDF to Excel BSHG");
         this.controller = Objects.requireNonNull(controller, "controller");
+        this.settings = Objects.requireNonNull(settings, "settings");
+        this.downloadService = Objects.requireNonNull(downloadService, "downloadService");
         initializeComponents();
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent event) { requestClose(); }
         });
-        setMinimumSize(new Dimension(920, 620));
-        setSize(1080, 760);
+        setMinimumSize(new Dimension(920, 680));
+        setSize(1120, 820);
         setLocationRelativeTo(null);
         getRootPane().setDefaultButton(processButton);
         updateControls();
@@ -73,7 +86,6 @@ public class PdfToExcelFrameFlatLaf extends JFrame {
     private void initializeComponents() {
         JPanel root = new JPanel(new BorderLayout(0, 16));
         root.setBorder(new EmptyBorder(18, 18, 18, 18));
-        setContentPane(root);
 
         JPanel form = new JPanel(new GridBagLayout());
         addFormRow(form, 0, "PDF-Ordner:", pdfDirectoryField, pdfBrowseButton);
@@ -122,6 +134,36 @@ public class PdfToExcelFrameFlatLaf extends JFrame {
         processButton.addActionListener(event -> processFiles());
         cancelButton.addActionListener(event -> requestCancellation());
         openResultButton.addActionListener(event -> openResult());
+
+        try {
+            UserSettingsStore.UiSettings saved = settings.uiSettings();
+            pdfDirectoryField.setText(saved.pdfDirectory());
+            excelFileField.setText(saved.excelFile());
+        } catch (IOException error) {
+            appendLog("[WARN] Gespeicherte Pfade konnten nicht gelesen werden: " + error.getMessage() + "\n");
+        }
+        downloadPanel = new DownloadPanel(settings, downloadService, this::useDownloadPaths, busy -> {
+            updateControls();
+            if (!busy && closeWhenFinished && activeWorker == null) {
+                downloadPanel.clearPassword(); dispose();
+            }
+        }) {
+            @Override void showError(String message) {
+                if (!closeWhenFinished) PdfToExcelFrameFlatLaf.this.showError(message);
+            }
+        };
+        tabs = new JTabbedPane();
+        tabs.addTab("Verarbeitung", root);
+        tabs.addTab("PDF herunterladen", downloadPanel);
+        tabs.addChangeListener(event -> getRootPane().setDefaultButton(
+                tabs.getSelectedIndex() == 0 ? processButton : downloadPanel.startButton()));
+        setContentPane(tabs);
+    }
+
+    private void useDownloadPaths(Path directory, Path output) {
+        if (activeWorker != null) return;
+        pdfDirectoryField.setText(directory.toString());
+        excelFileField.setText(output.toString());
     }
 
     private static GridBagConstraints constraints(int column, int row) {
@@ -184,7 +226,7 @@ public class PdfToExcelFrameFlatLaf extends JFrame {
     }
 
     private void processFiles() {
-        if (activeWorker != null) return;
+        if (activeWorker != null || downloadPanel.isRunning()) return;
         String folder = pdfDirectoryField.getText().strip();
         Path output;
         try {
@@ -204,6 +246,8 @@ public class PdfToExcelFrameFlatLaf extends JFrame {
         lastOutput = null;
         closeWhenFinished = false;
         logArea.setText("");
+        try { settings.savePaths(folder, output.toString()); }
+        catch (IOException error) { appendLog("[WARN] Pfade konnten nicht gespeichert werden: " + error.getMessage() + "\n"); }
         progressBar.setValue(0);
         progressBar.setString("0 %");
         setStatus("Verarbeitung läuft …", RUNNING);
@@ -214,15 +258,16 @@ public class PdfToExcelFrameFlatLaf extends JFrame {
     }
 
     private void updateControls() {
-        boolean busy = activeWorker != null;
+        boolean busy = activeWorker != null || downloadPanel != null && downloadPanel.isRunning();
         pdfDirectoryField.setEnabled(!busy);
         excelFileField.setEnabled(!busy);
         fallbackType.setEnabled(!busy);
         pdfBrowseButton.setEnabled(!busy);
         excelBrowseButton.setEnabled(!busy);
         processButton.setEnabled(!busy);
-        cancelButton.setEnabled(busy && !activeWorker.cancelRequested);
+        cancelButton.setEnabled(activeWorker != null && !activeWorker.cancelRequested);
         openResultButton.setEnabled(!busy && !openingReport && lastOutput != null);
+        if (downloadPanel != null) downloadPanel.setOtherTaskRunning(activeWorker != null);
     }
 
     private void setStatus(String text, Color color) {
@@ -248,12 +293,14 @@ public class PdfToExcelFrameFlatLaf extends JFrame {
     }
 
     private void requestClose() {
-        if (activeWorker == null) {
+        if (activeWorker == null && !downloadPanel.isRunning()) {
+            downloadPanel.clearPassword();
             dispose();
-        } else if (!closeWhenFinished && confirm("Verarbeitung abbrechen und das Fenster anschließend schließen?",
-                "Verarbeitung läuft")) {
+        } else if (!closeWhenFinished && confirm("Laufenden Vorgang abbrechen und das Fenster anschließend schließen?",
+                "Vorgang läuft")) {
             closeWhenFinished = true;
             requestCancellation();
+            downloadPanel.requestCancellation();
         }
     }
 
@@ -408,7 +455,7 @@ public class PdfToExcelFrameFlatLaf extends JFrame {
             } finally {
                 activeWorker = null;
                 updateControls();
-                if (closeWhenFinished) dispose();
+                if (closeWhenFinished && !downloadPanel.isRunning()) { downloadPanel.clearPassword(); dispose(); }
             }
         }
     }

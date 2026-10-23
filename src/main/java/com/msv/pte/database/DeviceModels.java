@@ -1949,6 +1949,7 @@ public class DeviceModels {
             "KI52LADE0",
             "KI52LSDE0",
             "KI5672FF0",
+            "FF020LMB2",
             "KI5772FF0",
             "KI5861SE0",
             "KI5861SF0",
@@ -2318,6 +2319,7 @@ public class DeviceModels {
             "LI97SA561S",
             "LI99SA684",
             "LJ65BCC60",
+            "LJ69BET65",
             "LJ65BCSET",
             "LJ67BAM60",
             "LJ67BDP60",
@@ -3232,6 +3234,7 @@ public class DeviceModels {
             "SN65TX04CE",
             "SN65TX05CE",
             "SN65YX00AE",
+            "SN65YX07CE",
             "SN65YX00CE",
             "SN65YX01BE",
             "SN65YX03BE",
@@ -4047,7 +4050,11 @@ public class DeviceModels {
             "EH61ABFB5E",
             "KI96NSDC0",
             "KB96NADD1",
-            "ED870HGA6"
+            "ED870HGA6",
+            "HND67MATT6",
+            "NIF61ABB5E",
+            "SN65YX07CE"
+
 
 
 
